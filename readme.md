@@ -1,4 +1,4 @@
-## CLIJ BigViewer bridge
+## CLIJ BigViewer
 This [CLIJ](https://clij.github.io) plugin enables viewing images in the [BigDataViewer](https://imagej.net/BigDataViewer)
 
 ![Image](images/screenshot_bdv.png)
