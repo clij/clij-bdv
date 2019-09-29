@@ -86,4 +86,8 @@ public class BigViewer {
 
         show(image, title);
     }
+
+    public BigViewerUI getBigViewer() {
+        return bdv;
+    }
 }

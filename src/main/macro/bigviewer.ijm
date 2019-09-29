@@ -20,11 +20,14 @@ Ext.CLIJ_clear();
 // push data to GPU
 Ext.CLIJ_push(input);
 
+// show image in BigViewer
 Ext.CLIJx_pullToBigViewer(input);
 
+// blur it
 blurred = "blurred";
 Ext.CLIJ_blur3D(input, blurred, 10, 10, 0);
 
+// show blurred version in second channel
 Ext.CLIJx_pullToBigViewer(blurred);
 
 

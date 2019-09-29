@@ -5,8 +5,7 @@ Right now, this is very preliminary.
 
 ## Installation intructions
 Download Fiji and activate the `clij` update site as described [here](https://clij.github.io/clij-docs/installationInFiji). 
-Furthermore, add another update site `clij2` with the url `https://sites.imagej.net/clij2/` and `BigVolumeViewer`
-with the url `https://sites.imagej.net/BigVolumeViewer/`.
+Furthermore, add another update site `clij2` with the url `https://sites.imagej.net/clij2/`.
 Update Fiji and restart it.
 
 ## Code examples

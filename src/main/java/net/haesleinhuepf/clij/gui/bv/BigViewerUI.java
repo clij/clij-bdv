@@ -2,9 +2,15 @@ package net.haesleinhuepf.clij.gui.bv;
 
 import bdv.util.*;
 import javafx.scene.layout.GridPane;
+import net.haesleinhuepf.clij.gui.bv.bdvtools.BDVUtilities;
+import net.haesleinhuepf.clij.gui.bv.bdvtools.BigDataViewerPlugin;
+import net.haesleinhuepf.clij.gui.bv.bdvtools.BigDataViewerPluginService;
+import net.haesleinhuepf.clij.gui.bv.bdvtools.SupportsBigDataViewerToolBarButton;
+import net.haesleinhuepf.clij.gui.bv.bdvtools.plugins.dataprobe.DataProbePlugin;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import org.scijava.Context;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,9 +31,9 @@ public abstract class BigViewerUI {
     AffineTransform3D transformY = new AffineTransform3D();
     AffineTransform3D transformZ = new AffineTransform3D();
 
-
+    JFrame frame;
     BigViewerUI() {
-        JFrame frame = new JFrame();
+        frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(500, 500);
         frame.setVisible(true);
@@ -50,6 +56,10 @@ public abstract class BigViewerUI {
         frame.add(handleX.getViewerPanel());
         frame.add(handleY.getViewerPanel());
 
+        addButtons(handleX);
+        addButtons(handleY);
+        addButtons(handleZ);
+
         frame.addWindowListener( new WindowAdapter()
         {
             @Override public void windowClosed( WindowEvent e )
@@ -67,10 +77,33 @@ public abstract class BigViewerUI {
 
     }
 
+    private void addButtons(BdvHandle handle) {
+        /*int verticalPosition = 100;
+        BigDataViewerPlugin[] plugins = {
+                new DataProbePlugin()
+        };
+        for (BigDataViewerPlugin plugin : plugins) {
+            plugin.setBdv(handle);
+            if (plugin instanceof SupportsBigDataViewerToolBarButton) {
+                verticalPosition = ((SupportsBigDataViewerToolBarButton) plugin).addToolBarButtons(verticalPosition);
+            }
+        }*/
+        BigDataViewerPluginService service = new Context(BigDataViewerPluginService.class).getService(BigDataViewerPluginService.class);
+        service.injectPlugins(handle);
+    }
+
     public void show(RandomAccessibleInterval rai, String title) {
         show(rai, title, "X", handleX);
         show(rai, title, "Y", handleY);
         show(rai, title, "Z", handleZ);
+
+        BDVUtilities.switchToXZ(handleY);
+        BDVUtilities.switchToYZ(handleX);
+        BDVUtilities.switchToXY(handleZ);
+        //handleX.getViewerPanel().setCurrentViewerTransform(transformX);
+        //handleY.getViewerPanel().setCurrentViewerTransform(transformY);
+        //handleZ.getViewerPanel().setCurrentViewerTransform(transformZ);
+
     }
 
     public void show(RandomAccessibleInterval rai, String title, String dimension, BdvHandle handle) {
@@ -109,5 +142,13 @@ public abstract class BigViewerUI {
         for (BdvStackSource handle : getHandlers(title)) {
             handle.setColor(colour);
         }
+    }
+
+    public BdvHandle getHandle() {
+        return handleZ;
+    }
+
+    public JFrame getFrame() {
+        return frame;
     }
 }
