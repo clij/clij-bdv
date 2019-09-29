@@ -1,6 +1,7 @@
 package net.haesleinhuepf.clij.gui.bv;
 
 import bdv.util.*;
+import bvv.util.*;
 import javafx.scene.layout.GridPane;
 import net.haesleinhuepf.clij.gui.bv.bdvtools.BDVUtilities;
 import net.haesleinhuepf.clij.gui.bv.bdvtools.BigDataViewerPlugin;
@@ -25,6 +26,7 @@ public abstract class BigViewerUI {
     BdvHandle handleX = null;
     BdvHandle handleY = null;
     BdvHandle handleZ = null;
+    BvvStackSource handle3D = null;
 
 
     AffineTransform3D transformX = new AffineTransform3D();
@@ -52,6 +54,7 @@ public abstract class BigViewerUI {
         handleY.getViewerPanel().setCurrentViewerTransform(transformY);
         handleZ = new BdvHandlePanel(null, Bdv.options());
         handleZ.getViewerPanel().setCurrentViewerTransform(transformZ);
+
         frame.add(handleZ.getViewerPanel());
         frame.add(handleX.getViewerPanel());
         frame.add(handleY.getViewerPanel());
@@ -100,6 +103,15 @@ public abstract class BigViewerUI {
         BDVUtilities.switchToXZ(handleY);
         BDVUtilities.switchToYZ(handleX);
         BDVUtilities.switchToXY(handleZ);
+
+        if (handle3D == null) {
+            handle3D = BvvFunctions.show(rai, title);
+            frame.add(handle3D.getBvvHandle().getViewerPanel());
+        } else {
+            BvvStackSource handle = BvvFunctions.show(rai, title, Bvv.options().addTo(handle3D));
+        }
+
+
         //handleX.getViewerPanel().setCurrentViewerTransform(transformX);
         //handleY.getViewerPanel().setCurrentViewerTransform(transformY);
         //handleZ.getViewerPanel().setCurrentViewerTransform(transformZ);
@@ -136,12 +148,14 @@ public abstract class BigViewerUI {
         for (BdvStackSource handle : getHandlers(title)) {
             handle.setDisplayRange(min, max);
         }
+        handle3D.setDisplayRange(min, max);
     }
 
     public void setColor(String title, ARGBType colour) {
         for (BdvStackSource handle : getHandlers(title)) {
             handle.setColor(colour);
         }
+        handle3D.setColor(colour);
     }
 
     public BdvHandle getHandle() {

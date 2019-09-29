@@ -14,7 +14,7 @@
 
 	<groupId>net.haesleinhuepf</groupId>
 	<artifactId>clij-bigviewer_</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 
 	<name>clij-bigviewer_</name>
 	<description>clij-bigviewer</description>
@@ -99,12 +99,23 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
 		</dependency>
-<!--		<dependency>
+		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigvolumeviewer</artifactId>
-			<version>0.1.4</version>
-		</dependency>-->
-
+			<version>0.1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.gluegen</groupId>
+			<artifactId>gluegen-rt-main</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.jogl</groupId>
+			<artifactId>jogl-all-main</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.joml</groupId>
+			<artifactId>joml</artifactId>
+		</dependency>
 	</dependencies>
 
 	<repositories>
