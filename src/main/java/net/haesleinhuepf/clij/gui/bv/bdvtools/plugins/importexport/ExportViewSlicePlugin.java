@@ -7,13 +7,21 @@ import bdv.viewer.Source;
 import bdv.viewer.state.SourceState;
 import bdv.viewer.state.ViewerState;
 import ij.ImagePlus;
+import ij.measure.Calibration;
 import ij.plugin.RGBStackMerge;
 import net.haesleinhuepf.clij.gui.bv.bdvtools.BDVUtilities;
 import net.haesleinhuepf.clij.gui.bv.bdvtools.BigDataViewerPlugin;
 import net.haesleinhuepf.clij.gui.bv.bdvtools.SupportsBigDataViewerToolBarButton;
 import net.haesleinhuepf.clij.gui.bv.utilities.ImageJUtilities;
+import net.haesleinhuepf.clij.gui.bv.utilities.ImgLib2Utils;
 import net.imglib2.Interval;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealViews;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Intervals;
+import net.imglib2.view.Views;
 import org.scijava.plugin.Plugin;
 
 import javax.swing.*;
@@ -143,13 +151,11 @@ public class ExportViewSlicePlugin implements BigDataViewerPlugin,
 				
 				//transform.preConcatenate(viewerTransform);
 				
-				ImagePlus
-            imp = ExportSubvolumePlugin.getSubVolumeAsImagePlus(bdv, newI, transform);
+				ImagePlus imp = getSubVolumeAsImagePlus(bdv, newI, transform);
 				
 				double[] localVoxelSize = BDVUtilities.getVoxelSize(source);
 				
-				ConverterSetup
-            setup = bdv.getSetupAssignments().getConverterSetups().get(i);
+				ConverterSetup setup = bdv.getSetupAssignments().getConverterSetups().get(i);
 				if (setup != null)
 				{
 					imp.setDisplayRange(setup.getDisplayRangeMin(), setup.getDisplayRangeMax());
@@ -192,6 +198,97 @@ public class ExportViewSlicePlugin implements BigDataViewerPlugin,
 		bdv.getViewerPanel().getVisibilityAndGrouping().setCurrentSource(formerCurrentSource);
 
 	}
+
+	public static ImagePlus getSubVolumeAsImagePlus(BdvHandle bdv, Interval interval, AffineTransform3D transform) {
+
+
+		RandomAccessibleInterval<UnsignedShortType>
+				ra = getSubVolumeAsRandomAccessibleInterval(bdv, interval, transform);
+		System.out.println("raxmin int: " + ra.min(0));
+		System.out.println("raymin int: " + ra.min(1));
+		System.out.println("razmin int: " + ra.min(2));
+		System.out.println("raxmax int: " + ra.max(0));
+		System.out.println("raymax int: " + ra.max(1));
+		System.out.println("razmax int: " + ra.max(2));
+		// ViewerState viewerState = bdv.getViewer().getState();
+
+		// ImageJFunctions.show(ra);
+		int[] dimensions = new int[] { (int) (interval.max(0) - interval.min(0) + 1), (int) (interval.max(1) - interval.min(1) + 1), 1,
+				(int) (interval.max(2) - interval.min(2) + 1), 1 };
+
+		ImagePlus
+				result = ImageJFunctions.wrap(ra, BDVUtilities.getCurrentSource(bdv).getName() + " cropped");
+		//
+		/*
+		 * ImageJFunctions.show(ra); ImagePlus output_imp_aux = IJ.getImage(); //ImageJFunctions.wrapFloat(ra, "title"); output_imp_aux.hide(); ImagePlus
+		 * output_imp = new Duplicator().run(output_imp_aux);
+		 *
+		 * output_imp.setDimensions(dimensions[2], dimensions[3], dimensions[4]); output_imp.setOpenAsHyperStack(true); output_imp.setTitle("CROP ");
+		 * //output_imp.show();
+		 *
+		 * ImagePlus result = output_imp;
+		 */
+
+		// IJ.getImage();
+		// result.hide();
+
+		double[] voxelSize = BDVUtilities.getVoxelSize(BDVUtilities.getCurrentSource(bdv));
+		Calibration calib = result.getCalibration();
+		calib.pixelWidth = voxelSize[0];
+		calib.pixelHeight = voxelSize[1];
+		calib.pixelDepth = voxelSize[2];
+
+		return result;
+	}
+
+	public static RandomAccessibleInterval<UnsignedShortType> getSubVolumeAsRandomAccessibleInterval(
+			BdvHandle bdv, Interval interval,
+			AffineTransform3D transform) {
+		final ViewerState state = bdv.getViewerPanel().getState();
+
+		if (interval != null) {
+			// I probably should check if the following action doesn't take too long....
+		}
+
+		@SuppressWarnings("unchecked")
+		// As long as the BDV is mainly working with UnsignedShortTypes, that's ok...
+		final Source<UnsignedShortType>
+				source = (Source<UnsignedShortType>) BDVUtilities.getCurrentSource(bdv);
+
+		final int timepoint = state.getCurrentTimepoint();
+		if (!source.isPresent(timepoint))
+			return null;
+
+		AffineTransform3D at3d = new AffineTransform3D();
+		source.getSourceTransform(timepoint, 0, at3d);
+
+
+		System.out.println("source transform: " + at3d.toString());
+
+		System.out.println("view transform: " + transform.toString());
+		at3d = at3d.preConcatenate(transform);
+
+		// DebugHelper.print(new BDVUtilities(), at3d.toString());
+		// DebugHelper.print(new BDVUtilities(), ImgLib2Utils.toString(interval));
+		// RandomAccessibleInterval<UnsignedShortType> ra = source.getSource(timepoint,
+		// state.getBestMipMapLevel(bdv.getViewer().getDisplay().getTransformEventHandler().getTransform(), state.getCurrentSource()));
+		/*
+		 * RandomAccessibleInterval<UnsignedShortType> ra =
+		 *
+		 * Views.interval( RealViews.affine( source.getInterpolatedSource(timepoint, 0, Interpolation.NEARESTNEIGHBOR), at3d), interval );
+		 */
+		RandomAccessibleInterval<UnsignedShortType>
+				ra = Views.interval(RealViews.affine(source.getInterpolatedSource(timepoint, 0, BDVUtilities.getInterpolation() ), at3d), interval);
+
+		System.out.println("Got interval: " + ImgLib2Utils.toString(interval));
+		System.out.println("using transform: " + at3d.toString());
+		// ImageJFunctions.show(ra);
+		/*
+		 * if (interval != null) { ra = Views.interval(ra, interval); }
+		 */
+		return ra;
+	}
+
 
 	@Override public void setBdv(BdvHandle bdv)
 	{

@@ -9,7 +9,6 @@ import ij.ImagePlus;
 import ij.measure.Calibration;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.haesleinhuepf.clij.gui.bv.bdvtools.plugins.boundingboxmodifier.BoundingBoxModifierPlugin;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.interpolation.InterpolatorFactory;

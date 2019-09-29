@@ -12,7 +12,6 @@ import bdv.viewer.state.SourceState;
 import bdv.viewer.state.ViewerState;
 import net.haesleinhuepf.clij.gui.bv.BigViewer;
 import net.haesleinhuepf.clij.gui.bv.bdvtools.BDVUtilities;
-import net.haesleinhuepf.clij.gui.bv.bdvtools.plugins.boundingboxmodifier.BoundingBoxModifierPlugin;
 import net.haesleinhuepf.clij.gui.bv.utilities.ImageJUtilities;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
@@ -115,37 +114,6 @@ public class BDVSourceListManager extends JDialog implements
 		});
 
 		contentPane.add(listSources);
-
-		JButton btnOutline = new JButton("Outline");
-		btnOutline.setBounds(0, 0, 121, 22);
-		contentPane.add(btnOutline);
-		btnOutline.setHorizontalAlignment(SwingConstants.LEFT);
-		btnOutline.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				outlineSelectedSource();
-			}
-
-		});
-		btnOutline.setToolTipText("Outline selected source");
-		btnOutline.setIcon(new ImageIcon(ImageJUtilities.getImageFromString(
-		// 0123456789abcdef
-						/* f */"    #  #  #     " +
-						/* f */"                " +
-						/* f */"  #     #       " +
-						/* f */"          #     " +
-						/* f */"#  #   #        " +
-						/* f */"                " +
-						/* f */"          #     " +
-						/* f */"#     #         " +
-						/* f */"        #       " +
-						/* f */"                " +
-						/* f */"#  #  #         " +
-						/* f */"                " +
-						/* f */"                " +
-						/* f */"                " +
-						/* f */"                " +
-						/* f */"                ")));
 
 		JButton btnDelete = new JButton("Delete");
 		btnDelete.setBounds(120, 0, 121, 22);
@@ -301,49 +269,6 @@ public class BDVSourceListManager extends JDialog implements
 		vg.setSourceActive(idx, !vg.isSourceActive(idx));
 	}
 
-	private void outlineSelectedSource() {
-		if (bdv == null) {
-			return;
-		}
-		int idx = listSources.getSelectedIndex();
-		ViewerState state = bdv.getViewerPanel().getState();
-		Source<?> source = state.getSources().get(idx).getSpimSource();
-		source.getInterpolatedSource(0, 0, Interpolation.NEARESTNEIGHBOR);
-
-		final int timepoint = state.getCurrentTimepoint();
-		if (!source.isPresent(timepoint)) {
-			System.out.println( "timepoint missing, sorry");
-			return;
-		}
-		
-		RandomAccessibleInterval<?>
-        sourceInterval = source.getSource(timepoint, 0);
-
-		RealInterval
-        currentInterval = BoundingBoxModifierPlugin.getCurrentlySelectedBoundingBoxRealInterval(bdv);
-		double[] vd = BDVUtilities.getVoxelSize(source);
-
-		AffineTransform3D temp = new AffineTransform3D();
-		source.getSourceTransform(0, 0, temp);
-
-		double[] translation = new BDVUtilities.BDVAffineTransform3D(temp).getTranslation();
-
-		/**
-		 * TODO: This only works with sources, that are not rotated in space...
-		 */
-		long[] minmax = new long[] { (long) (translation[0]), (long) (translation[1]), (long) (translation[2]),
-						(long) (translation[0] + (sourceInterval.max(0) - sourceInterval.min(0)) * vd[0]),
-						(long) (translation[1] + (sourceInterval.max(1) - sourceInterval.min(1)) * vd[1]),
-						(long) (translation[2] + (sourceInterval.max(2) - sourceInterval.min(2)) * vd[2]) };
-
-		if (currentInterval == null) {
-			Interval defaultInterval = Intervals.createMinMax(minmax);
-			BoundingBoxModifierPlugin.showBoundingBoxDialog(bdv, "Sub volume cropper", defaultInterval);
-		} else {
-			//currentInterval.set(Intervals.createMinMax(minmax));
-		}
-		bdv.getViewerPanel().requestRepaint();
-	}
 
 	private void deleteSelectedSource() {
 		if (bdv == null) {
