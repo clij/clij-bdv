@@ -13,4 +13,6 @@ Update Fiji and restart it.
 ## Code examples
 Have a look in the [macros](https://github.com/clij/clij-bdv/tree/master/src/main/macro) folder.
 
-Read more on the [CLIJ Website](https://clij.github.io).
+[Back to CLIJ documentation](https://clij.github.io/)
+
+[Imprint](https://clij.github.io/imprint)
