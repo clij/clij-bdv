@@ -11,6 +11,11 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import org.scijava.Context;
+import sc.fiji.labeleditor.core.LabelEditorPanel;
+import sc.fiji.labeleditor.core.model.LabelEditorModel;
+import sc.fiji.labeleditor.core.view.LabelEditorView;
+import sc.fiji.labeleditor.plugin.interfaces.bdv.BdvInterface;
+import sc.fiji.labeleditor.plugin.mode.timeslice.TimeSliceLabelEditorBdvPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,9 +27,9 @@ public abstract class BigViewerUI {
 
     HashMap<String, BdvStackSource> handleMap = new HashMap<String, BdvStackSource>();
 
-    BdvHandle handleX = null;
-    BdvHandle handleY = null;
-    BdvHandle handleZ = null;
+    BdvHandlePanel handleX = null;
+    BdvHandlePanel handleY = null;
+    BdvHandlePanel handleZ = null;
 
 
     AffineTransform3D transformX = new AffineTransform3D();
@@ -150,5 +155,22 @@ public abstract class BigViewerUI {
 
     public JFrame getFrame() {
         return frame;
+    }
+
+    public void show(LabelEditorModel model) {
+        LabelEditorPanel panel = new TimeSliceLabelEditorBdvPanel<>();
+        panel.init(model);
+
+        LabelEditorView<Integer> view = new LabelEditorView<>(model);
+        view.renderers().addDefaultRenderers();
+
+
+        view.renderers().forEach(renderer -> BdvFunctions.show(renderer.getOutput(), renderer.getName(), Bdv.options().addTo(handleX)));
+        BdvInterface.control(model, view, handleX);
+        view.renderers().forEach(renderer -> BdvFunctions.show(renderer.getOutput(), renderer.getName(), Bdv.options().addTo(handleY)));
+        BdvInterface.control(model, view, handleY);
+        view.renderers().forEach(renderer -> BdvFunctions.show(renderer.getOutput(), renderer.getName(), Bdv.options().addTo(handleZ)));
+        BdvInterface.control(model, view, handleZ);
+
     }
 }

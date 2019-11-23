@@ -6,10 +6,15 @@ import net.haesleinhuepf.clij.advancedmath.NotEqualConstant;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.clearcl.interfaces.ClearCLImageInterface;
 
+import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.view.Views;
+import sc.fiji.labeleditor.core.LabelEditorPanel;
+import sc.fiji.labeleditor.core.model.DefaultLabelEditorModel;
+import sc.fiji.labeleditor.core.model.LabelEditorModel;
+import sc.fiji.labeleditor.plugin.mode.timeslice.TimeSliceLabelEditorBdvPanel;
 
 import java.awt.*;
 
@@ -89,5 +94,26 @@ public class BigViewer {
 
     public BigViewerUI getBigViewer() {
         return bdv;
+    }
+
+    public void showLabelEditor(ClearCLBuffer labelMap) {
+
+        ClearCLBuffer converted = labelMap;
+        if (converted.getNativeType() != NativeTypeEnum.UnsignedShort) {
+            converted = clij.create(labelMap.getDimensions(), NativeTypeEnum.UnsignedShort);
+            clij.op().copy(labelMap, converted);
+        }
+        RandomAccessibleInterval labelMapRai = clij.pullRAI(converted);
+        if (converted != labelMap) {
+            converted.close();
+        }
+
+        LabelEditorModel model = DefaultLabelEditorModel.initFromLabelMap(labelMapRai);
+
+        bdv.show(model);
+
+
+
+
     }
 }
